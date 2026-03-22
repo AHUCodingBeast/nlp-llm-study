@@ -1,12 +1,11 @@
 import torch
-from sympy import print_glsl
 from torch.utils.data import Dataset, DataLoader
 
-from project.seq2seq.data_process_func import get_processed_file_data
+from project.seq2seq.data_process_func import get_processed_file_data, Lang
 
 
 class PairDataSet(Dataset):
-    def __init__(self, input_lang, output_lang, pairs):
+    def __init__(self, input_lang: Lang, output_lang: Lang, pairs: list):
         self.input_lang = input_lang
         self.output_lang = output_lang
         self.pairs = pairs
@@ -33,12 +32,19 @@ class PairDataSet(Dataset):
         return tensor_x, tensor_y
 
 
-if __name__ == "__main__":
-    input_lang, output_lang, pairs = get_processed_file_data("../../data/english_to_french/data/eng-fra.txt")
+def get_data_loader(path):
+    input_lang, output_lang, pairs = get_processed_file_data(path)
     dataset = PairDataSet(input_lang, output_lang, pairs)
-    print(dataset[0])
     data_loader = DataLoader(dataset, batch_size=1, shuffle=True)
-    for i, (x, y) in enumerate(data_loader):
-        print(x, y)
-        if i == 0:
-            break
+    return data_loader
+
+# if __name__ == "__main__":
+#     input_lang, output_lang, pairs = get_processed_file_data("../../data/english_to_french/data/eng-fra.txt")
+#     dataset = PairDataSet(input_lang, output_lang, pairs)
+#     print(dataset[0])
+#     data_loader = DataLoader(dataset, batch_size=1, shuffle=True)
+#     for i, (x, y) in enumerate(data_loader):
+#         # 使用dataLoader 得到的样本是二维的
+#         print(x, y)
+#         if i == 0:
+#             break
