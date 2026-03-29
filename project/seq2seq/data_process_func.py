@@ -13,7 +13,8 @@ import random  # 用于随机生成数据
 import torch.nn.functional as F
 import time
 
-# 参考链接：https://www.cnblogs.com/luzhanshi/articles/18987873
+# 参考链接：
+# https://www.cnblogs.com/luzhanshi/articles/18987873
 
 torch.manual_seed(1)
 np.random.seed(1)
