@@ -7,7 +7,7 @@ from torch.utils.data import Dataset, DataLoader, random_split
 import re  # 正则表达式处理文本
 import matplotlib.pyplot as plt
 import seaborn as sns  # 更美观的可视化
-from tqdm import tqdm  # 训练进度条
+#from tqdm import tqdm  # 训练进度条
 import unicodedata  # 处理特殊字符
 import random  # 用于随机生成数据
 import torch.nn.functional as F
@@ -147,10 +147,19 @@ def get_processed_file_data(path):
     pairs = filter_pairs(pairs)
     print(f"过滤之后原始语对的数量{len(pairs)}")
 
+    max_len_english = 0
+    max_len_french = 0
     for pair in pairs:
         input_lang.addSentence(pair[0])
+        max_len_english = max(max_len_english, len(pair[0].split(" ")))
+        max_len_french = max(max_len_french, len(pair[1].split(" ")))
         output_lang.addSentence(pair[1])
 
-    print(f"输入语言的词数{input_lang.n_words}")
-    print(f"输出语言的词数{output_lang.n_words}")
+    print(f"输入语言的词数{input_lang.n_words} 最长句子长度{max_len_english}")
+    print(f"输出语言的词数{output_lang.n_words} 最长句子长度{max_len_french}")
     return input_lang, output_lang, pairs
+
+
+if __name__ == "__main__":
+    path = "../../data/english_to_french/data/eng-fra.txt"
+    input_lang, output_lang, pairs = get_processed_file_data(path)

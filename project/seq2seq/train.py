@@ -44,15 +44,15 @@ def iter_training(x, y, encoder: EncoderRNN, decoder: AttentionDecoderRNN, encod
             target_y = y[0][idx].view(1)
             my_loss += criterion(output_y, target_y)
             input_y = y[0][idx].view(1, -1)
-        else:
-            for idx in range(y_len):
-                output_y, decode_hidden, weight = decoder(input_y, decode_hidden, v)
-                target_y = y[0][idx].view(1)
-                my_loss += criterion(output_y, target_y)
-                topv, topi = output_y.topk(1, dim=-1)
-                if topi.item() == Lang.EOS_token:
-                    break
-                input_y = topi.detach()
+    else:
+        for idx in range(y_len):
+            output_y, decode_hidden, weight = decoder(input_y, decode_hidden, v)
+            target_y = y[0][idx].view(1)
+            my_loss += criterion(output_y, target_y)
+            topv, topi = output_y.topk(1, dim=-1)
+            if topi.item() == Lang.EOS_token:
+                break
+            input_y = topi.detach()
     decode_adam.zero_grad()
     encode_adam.zero_grad()
     my_loss.backward()

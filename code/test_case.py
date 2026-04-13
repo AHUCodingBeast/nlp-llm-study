@@ -1,5 +1,4 @@
 import torch
-
-t1 = torch.randn(2,3,4)
-print(t1)
-print(t1[-1])
+str = ' 2 3   4'
+str2 = str.split(' ')
+print(str2)

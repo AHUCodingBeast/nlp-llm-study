@@ -16,6 +16,7 @@ class AttentionDecoderRNN(nn.Module):
         self.hidden_size = hidden_size
         self.dropout_p = dropout_p
         self.max_length = max_length
+
         # 输出 1,1,256
         self.embedding = nn.Embedding(self.vocab_size, self.hidden_size)
         self.dropout = nn.Dropout(self.dropout_p)
@@ -28,22 +29,56 @@ class AttentionDecoderRNN(nn.Module):
         self.softmax = nn.LogSoftmax(dim=-1)
 
     def forward(self, q, k, v):
+        """
+             解码器前向传播
+
+             Args:
+                 q: Query，当前解码器输入（要预测的单词索引），形状 (1, 1)
+                 k: Key，编码器的隐藏层状态，形状 (1, 1, hidden_size)
+                 v: Value，编码器的输出序列，形状 (max_length, hidden_size)
+
+             Returns:
+                 output: 预测的概率分布，形状 (1, vocab_size)
+                 k: 更新后的隐藏层状态
+                 weights: 注意力权重，形状 (1, max_length)
+             """;
+
         # 输入的形状是(1,1) -> (1,1,256), 每次送进去一个法文单词
         q = self.embedding(q)
         q = self.dropout(q)
 
-        # 拼接Q和K拼接计算相似度 1,256 cat 1,256 -> 1,512 经过attn -> 1,10
+        # 拼接 Query 和 Key 计算相似度
+        # q[0]: (1, hidden_size) - 当前解码器输入的特征向量
+        # k[0]: (1, hidden_size) - 编码器隐藏状态的特征向量
+        # 拼接后: (1, hidden_size * 2)
         catted = torch.cat((q[0], k[0]), dim=-1)
+
+        # 输入: (1, hidden_size * 2) -> 输出: (1, max_length)
+        # 权重表示当前解码步骤对编码器各时间步的关注程度
         weights = F.softmax(self.attn(catted), 1)
+
         # 使用升维unsqueeze(0) -> 1,1,10  *  1,10,256  = 1,1,256
         # 权重和V进行矩阵乘法得到上下文向量
         c = torch.bmm(weights.unsqueeze(0), v.unsqueeze(0))
-        # q 和 c进行拼接 1,256 cat 1,256 -> 1,512
+
+        # 将 Query 和上下文向量拼接
+        # q[0]: (1, hidden_size) - 当前输入特征
+        # c[0]: (1, hidden_size) - 加权后的上下文信息
+        # 拼接后: (1, hidden_size * 2)
         o = torch.cat((q[0], c[0]), 1)
+
         # 拼接之后的结果送入线性层
+        # 输入: (1, hidden_size * 2) -> 输出: (1, hidden_size)
         o = self.attn_combine(o).unsqueeze(0)
         o = F.relu(o)
+
+        # 通过 GRU 更新隐藏层状态
+        # 输入: o (1, 1, hidden_size), k (1, 1, hidden_size)
+        # 输出: output (1, 1, hidden_size), k (1, 1, hidden_size)
         output, k = self.gru(o, k)
+
+        # 将 GRU 输出映射到词汇表，并转换为对数概率
+        # output[0]: (1, hidden_size) -> (1, vocab_size) -> (1, vocab_size) 对数概率
         output = self.softmax(self.out(output[0]))
         return output, k, weights
 
