@@ -1,4 +1,5 @@
 import torch
-str = ' 2 3   4'
-str2 = str.split(' ')
-print(str2)
+
+a = torch.tensor(10)
+print(a,a.shape,a.view(1,-1))
+print(a.view(1,1,-1))

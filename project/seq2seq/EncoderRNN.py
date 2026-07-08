@@ -22,11 +22,12 @@ class EncoderRNN(nn.Module):
 
     def forward(self, input, hidden):
 
-        # (1,6) 假定hidden_size 是256则embedding之后 变为 (1,6,256)
+        # input 形状是 (1,6) ，hidden_size = 256，则embedding之后 变为 (1,6,256)
         # 如果我们在定义gru的时候没加batch_first=True 则需要使用embedded.transpose(0, 1) 变为 (6,1,256)
         embedded = self.embedding(input)
-        output = embedded
-        output, hidden = self.gru(output, hidden)
+
+        # embedded=[1,6,256] hidden = [1,1,256] -> output = [1,6,256] hidden = [1,1,256]
+        output, hidden = self.gru(embedded, hidden)
         return output, hidden
 
     def init_hidden(self):

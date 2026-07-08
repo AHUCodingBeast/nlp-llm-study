@@ -9,7 +9,13 @@ from project.seq2seq.dataset import get_data_loader
 class AttentionDecoderRNN(nn.Module):
     # 英文单词的最大长度 ，这里如果不满足这个长度需要做填充，否则做矩阵乘法bmm会有问题
     MAX_LENGTH = 10
-
+    """
+    vocab_size: 法文单词总个数
+    hidden_size: 法文单词的词向量的维度
+    dropout_p:  Dropout 概率
+    max_length: 法文单词的最大长度
+    device: 设备,是否启用GPU
+    """
     def __init__(self, vocab_size, hidden_size, dropout_p=0.1, max_length=MAX_LENGTH, device=None):
         super(AttentionDecoderRNN, self).__init__()
         self.vocab_size = vocab_size

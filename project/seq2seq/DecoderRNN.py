@@ -13,7 +13,6 @@ class DecoderRNN(nn.Module):
     input_size: 法文单词总个数
     hidden_size: 法文单词的词向量的维度
     """
-
     def __init__(self, input_size: int, hidden_size: int):
         super(DecoderRNN, self).__init__()
         self.input_size = input_size
@@ -30,8 +29,10 @@ class DecoderRNN(nn.Module):
         output = self.embedding(input)
         # 添加relu层使得embedding矩阵更加稀疏 防止过拟合
         output = F.relu(output)
+
+        # output=[1,1,256] hidden = [1,1,256] -> output = [1,1,256] hidden = [1,1,256]
         output, hidden = self.gru(output, hidden)
-        # (1,1,256) -> (1,256) -> (1,4345(output_size))
+        # (1,1,256) -> (1,256) -> (1,4345) 4345是法文单词的个数
         output = self.softmax(self.out(output[0]))
         return output, hidden
 
@@ -51,19 +52,16 @@ if __name__ == "__main__":
     print(f"解码器架构={decoder}")
 
     for i, (x, y) in enumerate(data_loader):
-        # 进行 前向传播
 
+        # x=[1,6] encoder.init_hidden()= [1,1,256] -> encode_output = [1,6,256], hn=[1,1,256]
         encode_output, hn = encoder(x, encoder.init_hidden())
-        print('编码器输出 >> ', encode_output.shape, hn.shape)
-
-        # tensor([[  6,  11,  65, 870, 299,   5,   1]]) torch.Size([1, 7])
-        print(y, y.shape)
 
         # 解码的时候是一个字符一个字符的送进去的
         for k in range(y.shape[1]):
-            # print(y[0][k].shape, y[0][k].view(1, -1).shape)
+            # y[0][k] 是一个标量了 形状是[] 经过 view(1,-1) 处理完之后 变为 [1,1] view(1,-1) 是让处理之后的第一维是1 第二维自适应
             temp = y[0][k].view(1, -1)
-            # hn 直接用编码器的隐藏层输出
+
+            # temp=[1,1] hn=[1,1,256] ->
             output, hn = decoder(temp, hn)
             print('解码器输出 >> ', output.shape, hn.shape)
         if i == 0:
